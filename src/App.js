@@ -1,26 +1,61 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import axios from "axios";
+import "./App.css";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+  state = {
+    name: "",
+    movie: [],
+  };
+
+  async componentDidMount() {
+    try {
+      await this.getMovie();
+      this.displayMovie();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  getMovie = async () => {
+    return new Promise((resolve, reject) => {
+      axios
+        .get("http://api.tvmaze.com/shows/1/episodes")
+        .then(({ data }) => {
+          this.setState({
+            movie: data,
+          });
+          resolve();
+        })
+        .catch((e) => reject(e));
+    });
+  };
+
+  displayMovie = async () => {
+    axios({
+      url: "/movie",
+      method: "POST",
+      data: this.state.movie,
+    })
+      .then(() => this.displayMovie())
+      .catch((err) => console.log(err));
+  };
+
+  render() {
+    return (
+      <div>
+        <form onSubmit={this.displayMovie}>
+          <button type="submit">Send</button>
+          <h2>Movie List</h2>
+          <div>
+            {this.state.movie.map((t) => {
+              return <p>{t.name}</p>;
+            })}
+          </div>
+        </form>
+      </div>
+    );
+  }
 }
 
 export default App;
